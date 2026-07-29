@@ -22,9 +22,14 @@ $router = new Router();
 // roadmap in CLAUDE.md), starting with the Auth module in Phase 1, e.g.:
 //
 // $router->group(['prefix' => '/api/v1'], function (Router $router): void {
-//     $router->post('/auth/login', [AuthController::class, 'login']);
-//     $router->group(['middleware' => [AuthMiddleware::class]], function (Router $router): void {
+//     $router->post('/auth/login', [AuthController::class, 'login']); // public, no middleware
+//
+//     $router->group(['middleware' => [AuthMiddleware::class, TenantResolverMiddleware::class]], function (Router $router): void {
 //         $router->post('/auth/logout', [AuthController::class, 'logout']);
+//
+//         $router->get('/invoices', [InvoiceController::class, 'index'], [
+//             [PermissionMiddleware::class, 'invoices.view'],
+//         ]);
 //     });
 // });
 

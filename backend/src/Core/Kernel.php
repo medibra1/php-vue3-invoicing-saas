@@ -71,36 +71,46 @@ final class Kernel
      * exception) is converted into a JSON error response, which also
      * keeps this method safe to call directly from tests without a real
      * HTTP environment.
+     *
+     * Global middleware runs *before* routing, wrapping the whole
+     * routing+dispatch step as its own final handler — not just around
+     * an already-matched route. Otherwise a CORS preflight OPTIONS
+     * request to a path with no registered route would 404 before
+     * CorsMiddleware ever got a chance to answer it, and a 404/405 would
+     * never carry CORS headers either.
      */
     public function handle(ServerRequestInterface $request): ResponseInterface
     {
-        try {
-            ['route' => $route, 'params' => $params] = $this->router->match($request);
-        } catch (RouteNotFoundException $e) {
-            return $this->jsonError(404, 'Not Found', $e->getMessage());
-        } catch (MethodNotAllowedException $e) {
-            $allowed = array_values(array_unique($e->allowedMethods));
+        $dispatchRoute = function (ServerRequestInterface $request): ResponseInterface {
+            try {
+                ['route' => $route, 'params' => $params] = $this->router->match($request);
+            } catch (RouteNotFoundException $e) {
+                return $this->jsonError(404, 'Not Found', $e->getMessage());
+            } catch (MethodNotAllowedException $e) {
+                $allowed = array_values(array_unique($e->allowedMethods));
 
-            return $this->jsonError(405, 'Method Not Allowed', $e->getMessage(), ['allowed' => $allowed])
-                ->withHeader('Allow', implode(', ', $allowed));
-        }
+                return $this->jsonError(405, 'Method Not Allowed', $e->getMessage(), ['allowed' => $allowed])
+                    ->withHeader('Allow', implode(', ', $allowed));
+            }
 
-        $finalHandler = function (ServerRequestInterface $request) use ($route, $params): ResponseInterface {
-            // Bound per-request so controllers/middleware can type-hint
-            // ServerRequestInterface and receive it via auto-wiring.
-            $this->container->instance(ServerRequestInterface::class, $request);
+            $finalHandler = function (ServerRequestInterface $request) use ($route, $params): ResponseInterface {
+                // Bound per-request so controllers/middleware can
+                // type-hint ServerRequestInterface and receive it via
+                // auto-wiring.
+                $this->container->instance(ServerRequestInterface::class, $request);
 
-            return $this->container->call($route->handler, $params);
+                return $this->container->call($route->handler, $params);
+            };
+
+            $routePipeline = new MiddlewarePipeline($route->middlewares, $this->container, $finalHandler);
+
+            return $routePipeline->handle($request);
         };
 
-        $pipeline = new MiddlewarePipeline(
-            array_merge($this->globalMiddlewares, $route->middlewares),
-            $this->container,
-            $finalHandler
-        );
+        $globalPipeline = new MiddlewarePipeline($this->globalMiddlewares, $this->container, $dispatchRoute);
 
         try {
-            return $pipeline->handle($request);
+            return $globalPipeline->handle($request);
         } catch (Throwable $e) {
             return $this->jsonError(500, 'Internal Server Error', $e->getMessage());
         }

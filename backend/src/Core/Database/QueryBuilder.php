@@ -72,6 +72,19 @@ final class QueryBuilder
     }
 
     /**
+     * `column LIKE %value%`, still fully parameterized (the whole
+     * `%value%` string is one bound value, same placeholder path as a
+     * normal where()). The search term's own `%`/`_` aren't escaped —
+     * a user typing a literal percent sign gets SQL wildcard behavior
+     * instead of a literal match, an acceptable simplification for a
+     * search box (not a SQL injection concern either way).
+     */
+    public function whereLike(string $column, string $value): static
+    {
+        return $this->where($column, 'LIKE', "%{$value}%");
+    }
+
+    /**
      * `column = ?` bound to NULL is always false in SQL (three-valued
      * logic) — it never matches, even for actually-NULL rows. These two
      * methods exist so soft-delete checks (`deleted_at IS NULL`) can be

@@ -9,8 +9,12 @@ use App\Core\Http\JsonBodyParserMiddleware;
 use App\Core\Kernel;
 use App\Core\Router\Router;
 use App\Modules\Auth\AuthController;
+use App\Modules\Auth\AuthMiddleware;
 use App\Modules\Auth\JwtDecoder;
 use App\Modules\Auth\JwtEncoder;
+use App\Modules\Auth\PermissionMiddleware;
+use App\Modules\Client\ClientController;
+use App\Modules\Tenant\TenantResolverMiddleware;
 
 require dirname(__DIR__) . '/vendor/autoload.php';
 
@@ -35,12 +39,16 @@ $router->group(['prefix' => '/api/v1'], function (Router $router): void {
         $router->post('/logout', [AuthController::class, 'logout']);
     });
 
-    // Protected routes will follow this pattern once each module exists:
-    // $router->group(['middleware' => [AuthMiddleware::class, TenantResolverMiddleware::class]], function (Router $router): void {
-    //     $router->get('/invoices', [InvoiceController::class, 'index'], [
-    //         [PermissionMiddleware::class, 'invoices.view'],
-    //     ]);
-    // });
+    $router->group(
+        ['prefix' => '/clients', 'middleware' => [AuthMiddleware::class, TenantResolverMiddleware::class]],
+        function (Router $router): void {
+            $router->get('', [ClientController::class, 'index'], [[PermissionMiddleware::class, 'clients.view']]);
+            $router->get('/{id}', [ClientController::class, 'show'], [[PermissionMiddleware::class, 'clients.view']]);
+            $router->post('', [ClientController::class, 'store'], [[PermissionMiddleware::class, 'clients.create']]);
+            $router->put('/{id}', [ClientController::class, 'update'], [[PermissionMiddleware::class, 'clients.update']]);
+            $router->delete('/{id}', [ClientController::class, 'destroy'], [[PermissionMiddleware::class, 'clients.delete']]);
+        }
+    );
 });
 
 $kernel = new Kernel($router, $container, globalMiddlewares: [

@@ -5,7 +5,7 @@ declare(strict_types=1);
 namespace App\Modules\Auth;
 
 use App\Core\Database\Connection;
-use App\Modules\Tenant\CurrentTenant;
+use App\Core\Database\CurrentTenant;
 
 /**
  * Checks whether a user holds a given RBAC permission, within the

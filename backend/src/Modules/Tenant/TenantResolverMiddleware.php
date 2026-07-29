@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Modules\Tenant;
 
 use App\Core\Container\Container;
+use App\Core\Database\CurrentTenant;
 use App\Core\Http\JsonErrorResponse;
 use Psr\Http\Message\ResponseInterface;
 use Psr\Http\Message\ServerRequestInterface;

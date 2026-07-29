@@ -29,4 +29,10 @@ final class TenantRepository
             ->whereNull('deleted_at')
             ->first();
     }
+
+    /** @param array{name: string} $data */
+    public function create(array $data): int
+    {
+        return (int) $this->connection->table('tenants')->insert($data);
+    }
 }

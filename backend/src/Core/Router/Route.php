@@ -22,7 +22,9 @@ final class Route
 
     /**
      * @param array{0: class-string, 1: string} $handler [Controller::class, 'method']
-     * @param array<class-string>               $middlewares
+     * @param array<int, class-string|array{0: class-string, 1: mixed}> $middlewares
+     *        Plain class-string, or a `[class-string, $parameter]` tuple
+     *        for middleware needing per-route config (see MiddlewarePipeline).
      */
     public function __construct(
         public readonly string $method,

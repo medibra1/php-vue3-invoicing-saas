@@ -38,6 +38,15 @@ class Container implements ContainerInterface
     /** @var array<string, true> Identifiers that must be cached after resolution */
     private array $singletons = [];
 
+    public function __construct()
+    {
+        // So any class can type-hint Container in its constructor and get
+        // *this* shared instance via auto-wiring, instead of a fresh,
+        // disconnected one (autowire(Container::class) would otherwise
+        // build an empty container with none of the app's bindings).
+        $this->instances[self::class] = $this;
+    }
+
     public function bind(string $abstract, callable|string $concrete): void
     {
         $this->bindings[$abstract] = $this->normalize($concrete);
@@ -111,6 +120,31 @@ class Container implements ContainerInterface
     }
 
     /**
+     * Like get(), but overrides specific constructor parameters by name
+     * instead of relying purely on auto-wiring. Used by
+     * MiddlewarePipeline for middleware that need per-route
+     * configuration — e.g. PermissionMiddleware needs to know *which*
+     * permission a given route requires, which a plain class-string
+     * middleware entry has no way to carry.
+     *
+     * Bypasses bind()/singleton() registrations on purpose: a
+     * parameterized middleware is built fresh per route, never shared.
+     *
+     * @param array<string, mixed> $parameters Constructor parameter name => value
+     */
+    public function makeWith(string $class, array $parameters): object
+    {
+        $reflection = new ReflectionClass($class);
+        $constructor = $reflection->getConstructor();
+
+        if ($constructor === null) {
+            return new $class();
+        }
+
+        return $reflection->newInstanceArgs($this->resolveParameters($constructor->getParameters(), $parameters));
+    }
+
+    /**
      * Builds an instance of $class by recursively resolving the typed
      * dependencies of its constructor.
      */
@@ -136,25 +170,26 @@ class Container implements ContainerInterface
      * Resolves a list of ReflectionParameter into concrete values.
      *
      * Priority order for each parameter:
-     *   1. present in $routeParams (URL parameter);
+     *   1. present in $explicitParams — a URL parameter (call()) or a
+     *      caller-supplied override (makeWith());
      *   2. type-hinted to a class/interface -> resolved via the container;
      *   3. the parameter's default value, if any.
      * Otherwise, an exception is thrown: better to fail early and
      * explicitly than to silently inject `null`.
      *
      * @param ReflectionParameter[] $parameters
-     * @param array<string, string> $routeParams
+     * @param array<string, mixed>  $explicitParams
      * @return array<int, mixed>
      */
-    private function resolveParameters(array $parameters, array $routeParams = []): array
+    private function resolveParameters(array $parameters, array $explicitParams = []): array
     {
         $resolved = [];
 
         foreach ($parameters as $param) {
             $name = $param->getName();
 
-            if (array_key_exists($name, $routeParams)) {
-                $resolved[] = $routeParams[$name];
+            if (array_key_exists($name, $explicitParams)) {
+                $resolved[] = $explicitParams[$name];
                 continue;
             }
 

@@ -78,7 +78,7 @@ final class Router
      * restored to their previous state when leaving the group() call
      * (an implicit stack via local save/restore).
      *
-     * @param array{prefix?: string, middleware?: array<class-string>} $attributes
+     * @param array{prefix?: string, middleware?: array<int, class-string|array{0: class-string, 1: mixed}>} $attributes
      */
     public function group(array $attributes, callable $callback): void
     {

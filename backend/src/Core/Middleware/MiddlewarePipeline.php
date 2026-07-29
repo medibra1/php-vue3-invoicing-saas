@@ -31,7 +31,16 @@ use Psr\Http\Server\RequestHandlerInterface;
 final class MiddlewarePipeline implements RequestHandlerInterface
 {
     /**
-     * @param array<int, class-string<MiddlewareInterface>> $middlewareClasses
+     * Each entry is either a plain class-string (built via the
+     * container's normal get(), so bind()/singleton() registrations
+     * apply) or a `[class-string, mixed $parameter]` tuple for
+     * middleware that need per-route configuration — e.g.
+     * `[PermissionMiddleware::class, 'invoices.create']`. Tuple
+     * middleware are built fresh per route via Container::makeWith(),
+     * which injects $parameter into the constructor argument literally
+     * named `$parameter` (see PermissionMiddleware).
+     *
+     * @param array<int, class-string<MiddlewareInterface>|array{0: class-string<MiddlewareInterface>, 1: mixed}> $middlewareClasses
      * @param Container $container Used to instantiate each middleware with
      *                              its own dependencies (e.g. AuthMiddleware
      *                              needs a JwtDecoder).
@@ -58,11 +67,16 @@ final class MiddlewarePipeline implements RequestHandlerInterface
             return ($this->finalHandler)($request);
         }
 
-        $middlewareClass = $this->middlewareClasses[$this->index];
+        $entry = $this->middlewareClasses[$this->index];
+
+        if (is_array($entry)) {
+            [$middlewareClass, $parameter] = $entry;
+            $middleware = $this->container->makeWith($middlewareClass, ['parameter' => $parameter]);
+        } else {
+            $middleware = $this->container->get($entry);
+        }
 
         /** @var MiddlewareInterface $middleware */
-        $middleware = $this->container->get($middlewareClass);
-
         $next = new self(
             $this->middlewareClasses,
             $this->container,

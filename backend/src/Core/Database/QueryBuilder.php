@@ -72,6 +72,26 @@ final class QueryBuilder
     }
 
     /**
+     * `column = ?` bound to NULL is always false in SQL (three-valued
+     * logic) — it never matches, even for actually-NULL rows. These two
+     * methods exist so soft-delete checks (`deleted_at IS NULL`) can be
+     * expressed correctly instead of silently matching zero rows.
+     */
+    public function whereNull(string $column): static
+    {
+        $this->wheres[] = ['column' => $column, 'operator' => 'IS NULL', 'value' => null];
+
+        return $this;
+    }
+
+    public function whereNotNull(string $column): static
+    {
+        $this->wheres[] = ['column' => $column, 'operator' => 'IS NOT NULL', 'value' => null];
+
+        return $this;
+    }
+
+    /**
      * Scopes every subsequent operation on this builder to a single
      * tenant. See the class-level doc — this is the mechanism the
      * multi-tenancy security requirement (CLAUDE.md) relies on.
@@ -251,6 +271,11 @@ final class QueryBuilder
                 }
 
                 $clauses[] = "{$where['column']} IN (" . implode(', ', $placeholders) . ')';
+                continue;
+            }
+
+            if ($where['operator'] === 'IS NULL' || $where['operator'] === 'IS NOT NULL') {
+                $clauses[] = "{$where['column']} {$where['operator']}";
                 continue;
             }
 

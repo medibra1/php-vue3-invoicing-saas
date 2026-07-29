@@ -3,12 +3,15 @@
 declare(strict_types=1);
 
 use App\Core\Container\Container;
+use App\Core\Database\Connection;
 use App\Core\Kernel;
 use App\Core\Router\Router;
 
 require dirname(__DIR__) . '/vendor/autoload.php';
 
 $container = new Container();
+$container->singleton(Connection::class, static fn (): Connection => Connection::fromEnv());
+
 $router = new Router();
 
 // Routes are registered module by module as each is built (see the

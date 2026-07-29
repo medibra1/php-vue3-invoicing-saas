@@ -11,6 +11,8 @@ use App\Modules\Auth\JwtEncoder;
 
 require dirname(__DIR__) . '/vendor/autoload.php';
 
+loadEnvFile(dirname(__DIR__) . '/.env');
+
 $container = new Container();
 $container->singleton(Connection::class, static fn (): Connection => Connection::fromEnv());
 $container->singleton(JwtEncoder::class, static fn (): JwtEncoder => JwtEncoder::fromEnv());

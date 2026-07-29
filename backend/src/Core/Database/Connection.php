@@ -38,14 +38,14 @@ final class Connection
      */
     public static function fromEnv(): self
     {
-        $host = self::env('DB_HOST', '127.0.0.1');
-        $port = self::env('DB_PORT', '3306');
-        $database = self::env('DB_DATABASE', 'invoicepro');
-        $charset = self::env('DB_CHARSET', 'utf8mb4');
+        $host = env('DB_HOST', '127.0.0.1');
+        $port = env('DB_PORT', '3306');
+        $database = env('DB_DATABASE', 'invoicepro');
+        $charset = env('DB_CHARSET', 'utf8mb4');
 
         $dsn = "mysql:host={$host};port={$port};dbname={$database};charset={$charset}";
 
-        return new self($dsn, self::env('DB_USERNAME', 'root'), self::env('DB_PASSWORD', ''));
+        return new self($dsn, env('DB_USERNAME', 'root'), env('DB_PASSWORD', ''));
     }
 
     /** Starts building a query against $table. See QueryBuilder for the fluent API. */
@@ -91,12 +91,5 @@ final class Connection
 
             throw $e;
         }
-    }
-
-    private static function env(string $key, string $default): string
-    {
-        $value = $_ENV[$key] ?? getenv($key);
-
-        return $value === false || $value === null || $value === '' ? $default : (string) $value;
     }
 }

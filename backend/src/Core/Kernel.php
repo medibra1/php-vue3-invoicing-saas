@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Core;
 
 use App\Core\Container\Container;
+use App\Core\Http\JsonErrorResponse;
 use App\Core\Http\ResponseEmitter;
 use App\Core\Middleware\MiddlewarePipeline;
 use App\Core\Router\MethodNotAllowedException;
@@ -106,27 +107,18 @@ final class Kernel
     }
 
     /**
-     * Builds a uniform `{"error": {"status", "message", ...}}` JSON
-     * response. The raw exception message is only exposed when
-     * APP_DEBUG=true, so a production deployment never leaks internals
-     * (SQL, file paths, stack traces) to the client.
+     * The raw exception message is only exposed when APP_DEBUG=true, so
+     * a production deployment never leaks internals (SQL, file paths,
+     * stack traces) to the client.
      *
      * @param array<string, mixed> $extra Always-safe extra fields (e.g. allowed methods on a 405)
      */
     private function jsonError(int $status, string $message, string $detail, array $extra = []): ResponseInterface
     {
-        $error = ['status' => $status, 'message' => $message, ...$extra];
-
-        if (filter_var($_ENV['APP_DEBUG'] ?? getenv('APP_DEBUG'), FILTER_VALIDATE_BOOLEAN)) {
-            $error['detail'] = $detail;
+        if (filter_var(env('APP_DEBUG', 'false'), FILTER_VALIDATE_BOOLEAN)) {
+            $extra['detail'] = $detail;
         }
 
-        $response = $this->psr17Factory
-            ->createResponse($status)
-            ->withHeader('Content-Type', 'application/json');
-
-        $response->getBody()->write((string) json_encode(['error' => $error], JSON_UNESCAPED_SLASHES));
-
-        return $response;
+        return JsonErrorResponse::build($status, $message, $extra);
     }
 }

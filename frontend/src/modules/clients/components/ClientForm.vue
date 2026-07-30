@@ -52,7 +52,7 @@ async function onSubmit(): Promise<void> {
 </script>
 
 <template>
-  <div class="flex min-h-screen items-center justify-center bg-surface-0 px-4">
+  <div class="flex min-h-full items-center justify-center px-4">
     <Card class="w-full max-w-md">
       <h1 class="mb-6 text-xl font-medium text-gray-900">
         {{ isEdit ? 'Edit client' : 'New client' }}

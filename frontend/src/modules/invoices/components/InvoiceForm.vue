@@ -88,7 +88,7 @@ async function onSubmit(): Promise<void> {
 </script>
 
 <template>
-  <div class="min-h-screen bg-surface-0 px-6 py-8">
+  <div class="px-6 py-8">
     <div class="mx-auto max-w-2xl">
       <Card>
         <h1 class="mb-6 text-xl font-medium text-gray-900">

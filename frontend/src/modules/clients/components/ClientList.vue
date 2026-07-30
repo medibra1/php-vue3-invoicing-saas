@@ -38,7 +38,7 @@ const columns = [
 </script>
 
 <template>
-  <div class="min-h-screen bg-surface-0 px-6 py-8">
+  <div class="px-6 py-8">
     <div class="mx-auto max-w-4xl">
       <div class="mb-6 flex items-center justify-between">
         <h1 class="text-xl font-medium text-gray-900">Clients</h1>

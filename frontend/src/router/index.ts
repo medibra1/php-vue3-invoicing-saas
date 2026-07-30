@@ -25,75 +25,70 @@ const router = createRouter({
     },
     {
       path: '/',
-      name: 'home',
-      component: () => import('@/modules/dashboard/components/Dashboard.vue'),
+      component: () => import('@/layouts/AdminLayout.vue'),
       meta: { requiresAuth: true },
-    },
-    {
-      path: '/clients',
-      name: 'clients.index',
-      component: () => import('@/modules/clients/components/ClientList.vue'),
-      meta: { requiresAuth: true },
-    },
-    {
-      path: '/clients/new',
-      name: 'clients.create',
-      component: () => import('@/modules/clients/components/ClientForm.vue'),
-      meta: { requiresAuth: true },
-    },
-    {
-      path: '/clients/:id/edit',
-      name: 'clients.edit',
-      component: () => import('@/modules/clients/components/ClientForm.vue'),
-      meta: { requiresAuth: true },
-    },
-    {
-      path: '/quotes',
-      name: 'quotes.index',
-      component: () => import('@/modules/quotes/components/QuoteList.vue'),
-      meta: { requiresAuth: true },
-    },
-    {
-      path: '/quotes/new',
-      name: 'quotes.create',
-      component: () => import('@/modules/quotes/components/QuoteForm.vue'),
-      meta: { requiresAuth: true },
-    },
-    {
-      path: '/quotes/:id/edit',
-      name: 'quotes.edit',
-      component: () => import('@/modules/quotes/components/QuoteForm.vue'),
-      meta: { requiresAuth: true },
-    },
-    {
-      path: '/quotes/:id',
-      name: 'quotes.show',
-      component: () => import('@/modules/quotes/components/QuoteDetail.vue'),
-      meta: { requiresAuth: true },
-    },
-    {
-      path: '/invoices',
-      name: 'invoices.index',
-      component: () => import('@/modules/invoices/components/InvoiceList.vue'),
-      meta: { requiresAuth: true },
-    },
-    {
-      path: '/invoices/new',
-      name: 'invoices.create',
-      component: () => import('@/modules/invoices/components/InvoiceForm.vue'),
-      meta: { requiresAuth: true },
-    },
-    {
-      path: '/invoices/:id/edit',
-      name: 'invoices.edit',
-      component: () => import('@/modules/invoices/components/InvoiceForm.vue'),
-      meta: { requiresAuth: true },
-    },
-    {
-      path: '/invoices/:id',
-      name: 'invoices.show',
-      component: () => import('@/modules/invoices/components/InvoiceDetail.vue'),
-      meta: { requiresAuth: true },
+      children: [
+        {
+          path: '',
+          name: 'home',
+          component: () => import('@/modules/dashboard/components/Dashboard.vue'),
+        },
+        {
+          path: 'clients',
+          name: 'clients.index',
+          component: () => import('@/modules/clients/components/ClientList.vue'),
+        },
+        {
+          path: 'clients/new',
+          name: 'clients.create',
+          component: () => import('@/modules/clients/components/ClientForm.vue'),
+        },
+        {
+          path: 'clients/:id/edit',
+          name: 'clients.edit',
+          component: () => import('@/modules/clients/components/ClientForm.vue'),
+        },
+        {
+          path: 'quotes',
+          name: 'quotes.index',
+          component: () => import('@/modules/quotes/components/QuoteList.vue'),
+        },
+        {
+          path: 'quotes/new',
+          name: 'quotes.create',
+          component: () => import('@/modules/quotes/components/QuoteForm.vue'),
+        },
+        {
+          path: 'quotes/:id/edit',
+          name: 'quotes.edit',
+          component: () => import('@/modules/quotes/components/QuoteForm.vue'),
+        },
+        {
+          path: 'quotes/:id',
+          name: 'quotes.show',
+          component: () => import('@/modules/quotes/components/QuoteDetail.vue'),
+        },
+        {
+          path: 'invoices',
+          name: 'invoices.index',
+          component: () => import('@/modules/invoices/components/InvoiceList.vue'),
+        },
+        {
+          path: 'invoices/new',
+          name: 'invoices.create',
+          component: () => import('@/modules/invoices/components/InvoiceForm.vue'),
+        },
+        {
+          path: 'invoices/:id/edit',
+          name: 'invoices.edit',
+          component: () => import('@/modules/invoices/components/InvoiceForm.vue'),
+        },
+        {
+          path: 'invoices/:id',
+          name: 'invoices.show',
+          component: () => import('@/modules/invoices/components/InvoiceDetail.vue'),
+        },
+      ],
     },
   ],
 })

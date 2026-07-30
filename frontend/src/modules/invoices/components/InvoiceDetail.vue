@@ -80,7 +80,7 @@ async function onDelete(): Promise<void> {
 </script>
 
 <template>
-  <div class="min-h-screen bg-surface-0 px-6 py-8">
+  <div class="px-6 py-8">
     <div class="mx-auto max-w-2xl">
       <RouterLink to="/invoices" class="mb-4 inline-block text-sm text-primary-500 hover:text-primary-600">
         ← Back to invoices

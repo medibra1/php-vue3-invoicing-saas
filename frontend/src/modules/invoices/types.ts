@@ -1,4 +1,4 @@
-export type InvoiceStatus = 'draft' | 'sent' | 'paid' | 'overdue' | 'cancelled'
+export type InvoiceStatus = 'draft' | 'sent' | 'partially_paid' | 'paid' | 'overdue' | 'cancelled'
 
 // quantity/unit_price/line_total/total come back as strings — MySQL
 // DECIMAL columns are stringified by PDO, and that survives json_encode.

@@ -5,6 +5,8 @@ import Badge from '@/components/ui/Badge.vue'
 import Button from '@/components/ui/Button.vue'
 import Card from '@/components/ui/Card.vue'
 import { useClientsStore } from '@/modules/clients/store'
+import RecordPaymentDialog from '@/modules/payments/components/RecordPaymentDialog.vue'
+import { usePayments } from '@/modules/payments/composables/usePayments'
 import { useInvoices } from '../composables/useInvoices'
 import { useInvoicesStore } from '../store'
 import type { Invoice, InvoiceStatus } from '../types'
@@ -14,27 +16,38 @@ const router = useRouter()
 const invoicesStore = useInvoicesStore()
 const clientsStore = useClientsStore()
 const { transition, destroy, downloadPdf, isLoading, errorMessage } = useInvoices()
+const { payments, load: loadPayments } = usePayments()
 
 const id = Number(route.params.id)
 const invoice = ref<Invoice | null>(null)
 const isLoadingInvoice = ref(true)
+const isPaymentDialogOpen = ref(false)
 
 onMounted(async () => {
   await clientsStore.fetchAll()
   invoice.value = await invoicesStore.fetchOne(id)
   isLoadingInvoice.value = false
+  await loadPayments(id)
 })
 
 const clientName = computed(
   () => clientsStore.items.find((c) => c.id === invoice.value?.client_id)?.name ?? '—',
 )
 
+const paidAmount = computed(() => payments.value.reduce((sum, p) => sum + Number(p.amount), 0))
+const remainingBalance = computed(() => Number(invoice.value?.total ?? 0) - paidAmount.value)
+
 const statusTone: Record<InvoiceStatus, 'neutral' | 'warning' | 'success' | 'danger'> = {
   draft: 'neutral',
   sent: 'warning',
+  partially_paid: 'warning',
   paid: 'success',
   overdue: 'danger',
   cancelled: 'danger',
+}
+
+async function onPaymentRecorded(): Promise<void> {
+  invoice.value = await invoicesStore.fetchOne(id)
 }
 
 async function moveTo(status: InvoiceStatus): Promise<void> {
@@ -103,9 +116,32 @@ async function onDelete(): Promise<void> {
           </tbody>
         </table>
 
-        <p class="mb-6 text-right text-sm font-medium text-gray-900">
-          Total: {{ Number(invoice.total).toFixed(2) }}
-        </p>
+        <div class="mb-6 text-right text-sm">
+          <p class="font-medium text-gray-900">Total: {{ Number(invoice.total).toFixed(2) }}</p>
+          <template v-if="payments.length > 0">
+            <p class="text-gray-500">Paid: {{ paidAmount.toFixed(2) }}</p>
+            <p v-if="invoice.status !== 'paid'" class="font-medium text-gray-900">
+              Remaining: {{ remainingBalance.toFixed(2) }}
+            </p>
+          </template>
+        </div>
+
+        <table v-if="payments.length > 0" class="mb-6 w-full text-sm">
+          <thead>
+            <tr class="border-b border-gray-200 text-left text-gray-500">
+              <th class="py-2 font-medium">Date</th>
+              <th class="py-2 font-medium">Method</th>
+              <th class="py-2 text-right font-medium">Amount</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr v-for="payment in payments" :key="payment.id" class="border-b border-gray-100">
+              <td class="py-2">{{ payment.paid_at }}</td>
+              <td class="py-2">{{ payment.method ?? '—' }}</td>
+              <td class="py-2 text-right">{{ Number(payment.amount).toFixed(2) }}</td>
+            </tr>
+          </tbody>
+        </table>
 
         <p v-if="errorMessage" class="mb-4 text-sm text-danger-600">{{ errorMessage }}</p>
 
@@ -121,17 +157,32 @@ async function onDelete(): Promise<void> {
           </template>
 
           <template v-else-if="invoice.status === 'sent'">
-            <Button :disabled="isLoading" @click="moveTo('paid')">Mark as paid</Button>
+            <Button :disabled="isLoading" @click="isPaymentDialogOpen = true">Record payment</Button>
+            <Button variant="secondary" :disabled="isLoading" @click="moveTo('paid')">Mark as paid</Button>
             <Button variant="secondary" :disabled="isLoading" @click="moveTo('overdue')">Mark as overdue</Button>
             <Button variant="secondary" :disabled="isLoading" @click="moveTo('cancelled')">Cancel</Button>
           </template>
 
+          <template v-else-if="invoice.status === 'partially_paid'">
+            <Button :disabled="isLoading" @click="isPaymentDialogOpen = true">Record payment</Button>
+            <Button variant="secondary" :disabled="isLoading" @click="moveTo('overdue')">Mark as overdue</Button>
+          </template>
+
           <template v-else-if="invoice.status === 'overdue'">
-            <Button :disabled="isLoading" @click="moveTo('paid')">Mark as paid</Button>
+            <Button :disabled="isLoading" @click="isPaymentDialogOpen = true">Record payment</Button>
+            <Button variant="secondary" :disabled="isLoading" @click="moveTo('paid')">Mark as paid</Button>
             <Button variant="secondary" :disabled="isLoading" @click="moveTo('cancelled')">Cancel</Button>
           </template>
         </div>
       </Card>
+
+      <RecordPaymentDialog
+        v-if="invoice"
+        v-model:open="isPaymentDialogOpen"
+        :invoice-id="invoice.id"
+        :remaining-balance="remainingBalance"
+        @recorded="onPaymentRecorded"
+      />
     </div>
   </div>
 </template>

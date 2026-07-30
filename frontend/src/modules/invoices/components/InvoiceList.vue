@@ -23,6 +23,7 @@ function clientName(clientId: number): string {
 const statusTone: Record<InvoiceStatus, 'neutral' | 'warning' | 'success' | 'danger'> = {
   draft: 'neutral',
   sent: 'warning',
+  partially_paid: 'warning',
   paid: 'success',
   overdue: 'danger',
   cancelled: 'danger',

@@ -47,6 +47,30 @@ const router = createRouter({
       component: () => import('@/modules/clients/components/ClientForm.vue'),
       meta: { requiresAuth: true },
     },
+    {
+      path: '/quotes',
+      name: 'quotes.index',
+      component: () => import('@/modules/quotes/components/QuoteList.vue'),
+      meta: { requiresAuth: true },
+    },
+    {
+      path: '/quotes/new',
+      name: 'quotes.create',
+      component: () => import('@/modules/quotes/components/QuoteForm.vue'),
+      meta: { requiresAuth: true },
+    },
+    {
+      path: '/quotes/:id/edit',
+      name: 'quotes.edit',
+      component: () => import('@/modules/quotes/components/QuoteForm.vue'),
+      meta: { requiresAuth: true },
+    },
+    {
+      path: '/quotes/:id',
+      name: 'quotes.show',
+      component: () => import('@/modules/quotes/components/QuoteDetail.vue'),
+      meta: { requiresAuth: true },
+    },
   ],
 })
 

@@ -1,6 +1,9 @@
 <script setup lang="ts">
 defineProps<{
-  modelValue: string
+  // number too so v-model.number works (numeric fields like quantity/
+  // unit_price bind to a number-typed source) — the component itself
+  // always emits the raw string from the native input either way.
+  modelValue: string | number
   label: string
   type?: string
   error?: string | null

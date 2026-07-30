@@ -14,6 +14,7 @@ use App\Modules\Auth\JwtDecoder;
 use App\Modules\Auth\JwtEncoder;
 use App\Modules\Auth\PermissionMiddleware;
 use App\Modules\Client\ClientController;
+use App\Modules\Quote\QuoteController;
 use App\Modules\Tenant\TenantResolverMiddleware;
 
 require dirname(__DIR__) . '/vendor/autoload.php';
@@ -47,6 +48,19 @@ $router->group(['prefix' => '/api/v1'], function (Router $router): void {
             $router->post('', [ClientController::class, 'store'], [[PermissionMiddleware::class, 'clients.create']]);
             $router->put('/{id}', [ClientController::class, 'update'], [[PermissionMiddleware::class, 'clients.update']]);
             $router->delete('/{id}', [ClientController::class, 'destroy'], [[PermissionMiddleware::class, 'clients.delete']]);
+        }
+    );
+
+    $router->group(
+        ['prefix' => '/quotes', 'middleware' => [AuthMiddleware::class, TenantResolverMiddleware::class]],
+        function (Router $router): void {
+            $router->get('', [QuoteController::class, 'index'], [[PermissionMiddleware::class, 'quotes.view']]);
+            $router->get('/{id}', [QuoteController::class, 'show'], [[PermissionMiddleware::class, 'quotes.view']]);
+            $router->post('', [QuoteController::class, 'store'], [[PermissionMiddleware::class, 'quotes.create']]);
+            $router->put('/{id}', [QuoteController::class, 'update'], [[PermissionMiddleware::class, 'quotes.update']]);
+            $router->delete('/{id}', [QuoteController::class, 'destroy'], [[PermissionMiddleware::class, 'quotes.delete']]);
+            $router->post('/{id}/status', [QuoteController::class, 'updateStatus'], [[PermissionMiddleware::class, 'quotes.update']]);
+            $router->post('/{id}/convert', [QuoteController::class, 'convert'], [[PermissionMiddleware::class, 'quotes.convert']]);
         }
     );
 });

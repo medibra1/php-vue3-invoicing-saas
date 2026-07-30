@@ -26,6 +26,9 @@ const { logout } = useAuth()
         <RouterLink to="/quotes">
           <Button variant="secondary">View quotes</Button>
         </RouterLink>
+        <RouterLink to="/invoices">
+          <Button variant="secondary">View invoices</Button>
+        </RouterLink>
         <Button variant="secondary" @click="logout">Log out</Button>
       </div>
     </Card>

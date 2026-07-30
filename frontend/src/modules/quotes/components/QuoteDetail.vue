@@ -7,7 +7,7 @@ import Card from '@/components/ui/Card.vue'
 import { useClientsStore } from '@/modules/clients/store'
 import { useQuotes } from '../composables/useQuotes'
 import { useQuotesStore } from '../store'
-import type { Quote, QuoteStatus } from '../types'
+import type { ConvertedInvoice, Quote, QuoteStatus } from '../types'
 
 const route = useRoute()
 const router = useRouter()
@@ -18,7 +18,7 @@ const { transition, convert, destroy, isLoading, errorMessage } = useQuotes()
 const id = Number(route.params.id)
 const quote = ref<Quote | null>(null)
 const isLoadingQuote = ref(true)
-const convertedInvoiceNumber = ref<string | null>(null)
+const convertedInvoice = ref<ConvertedInvoice | null>(null)
 
 onMounted(async () => {
   await clientsStore.fetchAll()
@@ -50,7 +50,7 @@ async function onConvert(): Promise<void> {
   const invoice = await convert(id)
 
   if (invoice) {
-    convertedInvoiceNumber.value = invoice.number
+    convertedInvoice.value = invoice
   }
 }
 
@@ -110,8 +110,11 @@ async function onDelete(): Promise<void> {
 
         <p v-if="errorMessage" class="mb-4 text-sm text-danger-600">{{ errorMessage }}</p>
 
-        <p v-if="convertedInvoiceNumber" class="mb-4 text-sm text-success-600">
-          Converted to invoice {{ convertedInvoiceNumber }}.
+        <p v-if="convertedInvoice" class="mb-4 text-sm text-success-600">
+          Converted to invoice
+          <RouterLink :to="`/invoices/${convertedInvoice.id}`" class="font-medium underline">
+            {{ convertedInvoice.number }}
+          </RouterLink>.
         </p>
 
         <div class="flex flex-wrap gap-3">
@@ -129,7 +132,7 @@ async function onDelete(): Promise<void> {
             <Button variant="secondary" :disabled="isLoading" @click="moveTo('expired')">Mark as expired</Button>
           </template>
 
-          <template v-else-if="quote.status === 'accepted' && !convertedInvoiceNumber">
+          <template v-else-if="quote.status === 'accepted' && !convertedInvoice">
             <Button :disabled="isLoading" @click="onConvert">Convert to invoice</Button>
           </template>
         </div>

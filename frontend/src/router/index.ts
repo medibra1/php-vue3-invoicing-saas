@@ -71,6 +71,30 @@ const router = createRouter({
       component: () => import('@/modules/quotes/components/QuoteDetail.vue'),
       meta: { requiresAuth: true },
     },
+    {
+      path: '/invoices',
+      name: 'invoices.index',
+      component: () => import('@/modules/invoices/components/InvoiceList.vue'),
+      meta: { requiresAuth: true },
+    },
+    {
+      path: '/invoices/new',
+      name: 'invoices.create',
+      component: () => import('@/modules/invoices/components/InvoiceForm.vue'),
+      meta: { requiresAuth: true },
+    },
+    {
+      path: '/invoices/:id/edit',
+      name: 'invoices.edit',
+      component: () => import('@/modules/invoices/components/InvoiceForm.vue'),
+      meta: { requiresAuth: true },
+    },
+    {
+      path: '/invoices/:id',
+      name: 'invoices.show',
+      component: () => import('@/modules/invoices/components/InvoiceDetail.vue'),
+      meta: { requiresAuth: true },
+    },
   ],
 })
 

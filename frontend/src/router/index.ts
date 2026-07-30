@@ -29,6 +29,24 @@ const router = createRouter({
       component: () => import('@/modules/dashboard/DashboardPlaceholder.vue'),
       meta: { requiresAuth: true },
     },
+    {
+      path: '/clients',
+      name: 'clients.index',
+      component: () => import('@/modules/clients/components/ClientList.vue'),
+      meta: { requiresAuth: true },
+    },
+    {
+      path: '/clients/new',
+      name: 'clients.create',
+      component: () => import('@/modules/clients/components/ClientForm.vue'),
+      meta: { requiresAuth: true },
+    },
+    {
+      path: '/clients/:id/edit',
+      name: 'clients.edit',
+      component: () => import('@/modules/clients/components/ClientForm.vue'),
+      meta: { requiresAuth: true },
+    },
   ],
 })
 

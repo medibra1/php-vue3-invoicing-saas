@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import { RouterLink } from 'vue-router'
 import Button from '@/components/ui/Button.vue'
 import Card from '@/components/ui/Card.vue'
 import { useAuth } from '@/modules/auth/composables/useAuth'
@@ -18,7 +19,12 @@ const { logout } = useAuth()
       <h1 class="mb-2 text-xl font-medium text-gray-900">You're logged in</h1>
       <p class="mb-1 text-sm text-gray-600">{{ auth.user?.name }} &lt;{{ auth.user?.email }}&gt;</p>
       <p class="mb-6 text-sm text-gray-500">Tenant #{{ auth.user?.tenantId }}</p>
-      <Button variant="secondary" @click="logout">Log out</Button>
+      <div class="flex gap-3">
+        <RouterLink to="/clients">
+          <Button variant="secondary">View clients</Button>
+        </RouterLink>
+        <Button variant="secondary" @click="logout">Log out</Button>
+      </div>
     </Card>
   </div>
 </template>

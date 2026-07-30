@@ -16,11 +16,19 @@ use DateTimeImmutable;
  */
 final class InvoiceService
 {
-    /** @var array<string, string[]> Allowed next statuses per current status. */
+    /**
+     * Allowed next statuses per current status. 'partially_paid' is
+     * reachable only through PaymentService (a real payment record backs
+     * it) — it's a valid *source* here so a partially paid invoice isn't
+     * stuck, but deliberately not a manual target from 'sent'/'overdue'.
+     *
+     * @var array<string, string[]>
+     */
     private const ALLOWED_TRANSITIONS = [
         'draft' => ['sent'],
         'sent' => ['paid', 'overdue', 'cancelled'],
         'overdue' => ['paid', 'cancelled'],
+        'partially_paid' => ['paid', 'overdue'],
         'paid' => [],
         'cancelled' => [],
     ];

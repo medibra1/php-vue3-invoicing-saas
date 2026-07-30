@@ -17,7 +17,6 @@ const auth = useAuthStore()
 const router = useRouter()
 const { logout } = useAuth()
 
-// No avatar photo support yet (Profile module, next step) — initials-only for now.
 const initials = computed(() => {
   const name = auth.user?.name ?? ''
 
@@ -39,8 +38,12 @@ function goToProfile(): void {
     <DropdownMenu>
       <DropdownMenuTrigger as-child>
         <button type="button" class="flex items-center gap-2 rounded-md px-2 py-1.5 hover:bg-surface-1">
+          <span v-if="auth.user?.avatarUrl" class="size-8 shrink-0 overflow-hidden rounded-full">
+            <img :src="auth.user.avatarUrl" alt="" class="size-full object-cover" />
+          </span>
           <span
-            class="flex size-8 items-center justify-center rounded-full bg-primary-500 text-xs font-medium text-white"
+            v-else
+            class="flex size-8 shrink-0 items-center justify-center rounded-full bg-primary-500 text-xs font-medium text-white"
           >
             {{ initials || '?' }}
           </span>

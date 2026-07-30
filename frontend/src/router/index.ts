@@ -88,6 +88,16 @@ const router = createRouter({
           name: 'invoices.show',
           component: () => import('@/modules/invoices/components/InvoiceDetail.vue'),
         },
+        {
+          path: 'profile',
+          name: 'profile.show',
+          component: () => import('@/modules/profile/components/ProfileForm.vue'),
+        },
+        {
+          path: 'profile/password',
+          name: 'profile.password',
+          component: () => import('@/modules/profile/components/PasswordForm.vue'),
+        },
       ],
     },
   ],

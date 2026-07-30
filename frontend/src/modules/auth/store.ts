@@ -45,6 +45,21 @@ export const useAuthStore = defineStore('auth', {
       localStorage.setItem(USER_KEY, JSON.stringify(tokens.user))
     },
 
+    /**
+     * Merges a partial user update (e.g. from the Profile module's
+     * name/avatar change) into the current session and re-persists it —
+     * setSession() replaces the whole session on login, this only
+     * patches the user portion of an already-active one.
+     */
+    updateUser(patch: Partial<AuthUser>): void {
+      if (this.user === null) {
+        return
+      }
+
+      this.user = { ...this.user, ...patch }
+      localStorage.setItem(USER_KEY, JSON.stringify(this.user))
+    },
+
     clearSession(): void {
       this.accessToken = null
       this.refreshToken = null

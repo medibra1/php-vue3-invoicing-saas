@@ -1,9 +1,90 @@
+
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
+
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
 
 @layer base {
+  /*
+   * shadcn-vue tokens mapped to the project's existing palette (see
+   * CLAUDE.md "Visual direction" / tailwind.config.ts) instead of shadcn's
+   * generic neutral defaults, so shadcn components (Card, DropdownMenu,
+   * Dialog...) render visually consistent with the homemade ui/ set.
+   * Dark mode variables are left as shadcn's generic defaults: the app has
+   * no dark-mode toggle, so they're unused for now.
+   */
+  :root {
+    --background: 60 17% 98%; /* surface-0 */
+    --foreground: 221 39% 11%; /* gray-900 */
+
+    --card: 0 0% 100%; /* surface-2 */
+    --card-foreground: 221 39% 11%; /* gray-900 */
+
+    --popover: 0 0% 100%; /* surface-2 */
+    --popover-foreground: 221 39% 11%; /* gray-900 */
+
+    --primary: 210 75% 37%; /* primary-500 */
+    --primary-foreground: 0 0% 100%;
+
+    --secondary: 47 24% 93%; /* surface-1 */
+    --secondary-foreground: 217 19% 27%; /* gray-700 */
+
+    --muted: 47 24% 93%; /* surface-1 */
+    --muted-foreground: 220 9% 46%; /* gray-500 */
+
+    --accent: 47 24% 93%; /* surface-1 */
+    --accent-foreground: 221 39% 11%; /* gray-900 */
+
+    --destructive: 0 57% 41%; /* danger-600 */
+    --destructive-foreground: 0 0% 100%;
+
+    --border: 220 13% 91%; /* gray-200 */
+    --input: 216 12% 84%; /* gray-300 */
+    --ring: 210 75% 37%; /* primary-500 */
+
+    --chart-1: 12 76% 61%;
+    --chart-2: 173 58% 39%;
+    --chart-3: 197 37% 24%;
+    --chart-4: 43 74% 66%;
+    --chart-5: 27 87% 67%;
+
+    --radius: 0.5rem;
+  }
+
+  .dark {
+    --background: 0 0% 3.9%;
+    --foreground: 0 0% 98%;
+    --card: 0 0% 3.9%;
+    --card-foreground: 0 0% 98%;
+    --popover: 0 0% 3.9%;
+    --popover-foreground: 0 0% 98%;
+    --primary: 0 0% 98%;
+    --primary-foreground: 0 0% 9%;
+    --secondary: 0 0% 14.9%;
+    --secondary-foreground: 0 0% 98%;
+    --muted: 0 0% 14.9%;
+    --muted-foreground: 0 0% 63.9%;
+    --accent: 0 0% 14.9%;
+    --accent-foreground: 0 0% 98%;
+    --destructive: 0 62.8% 30.6%;
+    --destructive-foreground: 0 0% 98%;
+    --border: 0 0% 14.9%;
+    --input: 0 0% 14.9%;
+    --ring: 0 0% 83.1%;
+    --chart-1: 220 70% 50%;
+    --chart-2: 160 60% 45%;
+    --chart-3: 30 80% 55%;
+    --chart-4: 280 65% 60%;
+    --chart-5: 340 75% 55%;
+  }
+}
+
+@layer base {
+  * {
+    @apply border-border;
+  }
   body {
-    @apply bg-surface-0 text-gray-900 antialiased;
+    @apply bg-background text-foreground antialiased;
   }
 }

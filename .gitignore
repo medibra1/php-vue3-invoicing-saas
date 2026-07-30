@@ -4,6 +4,7 @@ backend/.env
 backend/.env.*
 !backend/.env.example
 backend/.phpunit.result.cache
+backend/public/uploads/
 
 # Frontend
 frontend/node_modules/

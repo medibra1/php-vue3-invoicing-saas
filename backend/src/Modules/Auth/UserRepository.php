@@ -47,4 +47,13 @@ final class UserRepository
     {
         return (int) $this->connection->table('users')->insert($data);
     }
+
+    /**
+     * @param array<string, mixed> $data
+     * @return int Rows affected.
+     */
+    public function update(int $id, array $data): int
+    {
+        return $this->connection->table('users')->where('id', '=', $id)->update($data);
+    }
 }

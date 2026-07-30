@@ -53,4 +53,29 @@ final class PermissionRepository
             ->where('permission_id', '=', $permission['id'])
             ->count() > 0;
     }
+
+    /**
+     * Used by Profile::show() to surface a display-only role name — not
+     * a permission check, so it doesn't belong in userHasPermission(),
+     * but it's the same tenant-scoped user_roles lookup this class
+     * already owns.
+     *
+     * @return string[] Role slugs assigned to this user within the current tenant.
+     */
+    public function roleSlugsForUser(int $userId): array
+    {
+        $roleIds = array_column(
+            $this->connection->table('user_roles')
+                ->where('user_id', '=', $userId)
+                ->where('tenant_id', '=', $this->tenant->id)
+                ->get(),
+            'role_id'
+        );
+
+        if ($roleIds === []) {
+            return [];
+        }
+
+        return array_column($this->connection->table('roles')->whereIn('id', $roleIds)->get(), 'slug');
+    }
 }

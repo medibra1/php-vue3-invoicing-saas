@@ -16,9 +16,26 @@ use App\Modules\Auth\PermissionMiddleware;
 use App\Modules\Client\ClientController;
 use App\Modules\Invoice\InvoiceController;
 use App\Modules\Payment\PaymentController;
+use App\Modules\Profile\AvatarService;
+use App\Modules\Profile\ProfileController;
 use App\Modules\Quote\QuoteController;
 use App\Modules\Stats\StatsController;
 use App\Modules\Tenant\TenantResolverMiddleware;
+
+// PHP's built-in dev server (`php -S ... public/index.php`) routes
+// *every* request through this router script, including ones for real
+// static files (e.g. Modules\Profile's uploaded avatars) — unlike
+// Apache/Nginx, it never serves an existing file directly unless the
+// router explicitly opts out by returning false. Production deploys
+// behind a real webserver don't need this (its own docroot handling
+// already serves public/uploads/* directly), so this is dev-only.
+if (PHP_SAPI === 'cli-server') {
+    $requestedFile = realpath(__DIR__ . parse_url((string) $_SERVER['REQUEST_URI'], PHP_URL_PATH));
+
+    if ($requestedFile !== false && is_file($requestedFile) && str_starts_with($requestedFile, __DIR__)) {
+        return false;
+    }
+}
 
 require dirname(__DIR__) . '/vendor/autoload.php';
 
@@ -29,6 +46,10 @@ $container->singleton(Connection::class, static fn (): Connection => Connection:
 $container->singleton(JwtEncoder::class, static fn (): JwtEncoder => JwtEncoder::fromEnv());
 $container->singleton(JwtDecoder::class, static fn (): JwtDecoder => JwtDecoder::fromEnv());
 $container->singleton(CorsMiddleware::class, static fn (): CorsMiddleware => CorsMiddleware::fromEnv());
+$container->singleton(AvatarService::class, static fn (): AvatarService => new AvatarService(
+    dirname(__DIR__) . '/public/uploads/avatars',
+    rtrim(env('APP_URL', 'http://127.0.0.1:8000'), '/') . '/uploads/avatars'
+));
 
 $router = new Router();
 
@@ -86,6 +107,20 @@ $router->group(['prefix' => '/api/v1'], function (Router $router): void {
         ['prefix' => '/stats', 'middleware' => [AuthMiddleware::class, TenantResolverMiddleware::class]],
         function (Router $router): void {
             $router->get('/dashboard', [StatsController::class, 'dashboard'], [[PermissionMiddleware::class, 'stats.view']]);
+        }
+    );
+
+    // No PermissionMiddleware on any of these: managing your own profile
+    // is implicit for any authenticated user, not gated by the RBAC
+    // permission matrix the way business-data endpoints are.
+    $router->group(
+        ['prefix' => '/me', 'middleware' => [AuthMiddleware::class, TenantResolverMiddleware::class]],
+        function (Router $router): void {
+            $router->get('', [ProfileController::class, 'show']);
+            $router->put('', [ProfileController::class, 'update']);
+            $router->post('/avatar', [ProfileController::class, 'uploadAvatar']);
+            $router->delete('/avatar', [ProfileController::class, 'deleteAvatar']);
+            $router->put('/password', [ProfileController::class, 'changePassword']);
         }
     );
 });

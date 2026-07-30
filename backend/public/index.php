@@ -17,6 +17,7 @@ use App\Modules\Client\ClientController;
 use App\Modules\Invoice\InvoiceController;
 use App\Modules\Payment\PaymentController;
 use App\Modules\Quote\QuoteController;
+use App\Modules\Stats\StatsController;
 use App\Modules\Tenant\TenantResolverMiddleware;
 
 require dirname(__DIR__) . '/vendor/autoload.php';
@@ -78,6 +79,13 @@ $router->group(['prefix' => '/api/v1'], function (Router $router): void {
             $router->post('/{id}/status', [InvoiceController::class, 'updateStatus'], [[PermissionMiddleware::class, 'invoices.update']]);
             $router->get('/{id}/payments', [PaymentController::class, 'index'], [[PermissionMiddleware::class, 'payments.view']]);
             $router->post('/{id}/payments', [PaymentController::class, 'store'], [[PermissionMiddleware::class, 'payments.create']]);
+        }
+    );
+
+    $router->group(
+        ['prefix' => '/stats', 'middleware' => [AuthMiddleware::class, TenantResolverMiddleware::class]],
+        function (Router $router): void {
+            $router->get('/dashboard', [StatsController::class, 'dashboard'], [[PermissionMiddleware::class, 'stats.view']]);
         }
     );
 });

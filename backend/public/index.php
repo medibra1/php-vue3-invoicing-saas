@@ -14,6 +14,7 @@ use App\Modules\Auth\JwtDecoder;
 use App\Modules\Auth\JwtEncoder;
 use App\Modules\Auth\PermissionMiddleware;
 use App\Modules\Client\ClientController;
+use App\Modules\Invoice\InvoiceController;
 use App\Modules\Quote\QuoteController;
 use App\Modules\Tenant\TenantResolverMiddleware;
 
@@ -61,6 +62,19 @@ $router->group(['prefix' => '/api/v1'], function (Router $router): void {
             $router->delete('/{id}', [QuoteController::class, 'destroy'], [[PermissionMiddleware::class, 'quotes.delete']]);
             $router->post('/{id}/status', [QuoteController::class, 'updateStatus'], [[PermissionMiddleware::class, 'quotes.update']]);
             $router->post('/{id}/convert', [QuoteController::class, 'convert'], [[PermissionMiddleware::class, 'quotes.convert']]);
+        }
+    );
+
+    $router->group(
+        ['prefix' => '/invoices', 'middleware' => [AuthMiddleware::class, TenantResolverMiddleware::class]],
+        function (Router $router): void {
+            $router->get('', [InvoiceController::class, 'index'], [[PermissionMiddleware::class, 'invoices.view']]);
+            $router->get('/{id}', [InvoiceController::class, 'show'], [[PermissionMiddleware::class, 'invoices.view']]);
+            $router->get('/{id}/pdf', [InvoiceController::class, 'pdf'], [[PermissionMiddleware::class, 'invoices.view']]);
+            $router->post('', [InvoiceController::class, 'store'], [[PermissionMiddleware::class, 'invoices.create']]);
+            $router->put('/{id}', [InvoiceController::class, 'update'], [[PermissionMiddleware::class, 'invoices.update']]);
+            $router->delete('/{id}', [InvoiceController::class, 'destroy'], [[PermissionMiddleware::class, 'invoices.delete']]);
+            $router->post('/{id}/status', [InvoiceController::class, 'updateStatus'], [[PermissionMiddleware::class, 'invoices.update']]);
         }
     );
 });

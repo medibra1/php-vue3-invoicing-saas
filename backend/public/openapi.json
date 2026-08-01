@@ -1,0 +1,952 @@
+{
+    "openapi": "3.0.0",
+    "info": {
+        "title": "InvoicePro API",
+        "description": "Multi-tenant invoicing/quoting API for freelancers/SMEs.",
+        "version": "0.1.0"
+    },
+    "servers": [
+        {
+            "url": "http://localhost:8000/api/v1",
+            "description": "Local development (Docker)"
+        }
+    ],
+    "paths": {
+        "/api/v1/auth/register": {
+            "post": {
+                "tags": [
+                    "Auth"
+                ],
+                "summary": "Sign up a new tenant with its first user, who becomes owner",
+                "operationId": "fe07b500c9eb55f0f5cb794db5cf6d35",
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "required": [
+                                    "tenantName",
+                                    "name",
+                                    "email",
+                                    "password"
+                                ],
+                                "properties": {
+                                    "tenantName": {
+                                        "type": "string",
+                                        "example": "Acme Freelance"
+                                    },
+                                    "name": {
+                                        "type": "string",
+                                        "example": "Jane Doe"
+                                    },
+                                    "email": {
+                                        "type": "string",
+                                        "format": "email",
+                                        "example": "jane@acme.test"
+                                    },
+                                    "password": {
+                                        "type": "string",
+                                        "format": "password",
+                                        "minLength": 8
+                                    }
+                                },
+                                "type": "object"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "201": {
+                        "description": "Account created — accessToken/refreshToken/user"
+                    },
+                    "409": {
+                        "description": "Email already registered"
+                    },
+                    "422": {
+                        "description": "Invalid input"
+                    }
+                }
+            }
+        },
+        "/api/v1/auth/login": {
+            "post": {
+                "tags": [
+                    "Auth"
+                ],
+                "summary": "Exchange email + password for an access + refresh token",
+                "operationId": "f2cf3101bc2554228664e908ebf10444",
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "required": [
+                                    "email",
+                                    "password"
+                                ],
+                                "properties": {
+                                    "email": {
+                                        "type": "string",
+                                        "format": "email"
+                                    },
+                                    "password": {
+                                        "type": "string",
+                                        "format": "password"
+                                    }
+                                },
+                                "type": "object"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "Authenticated — accessToken/refreshToken/user"
+                    },
+                    "401": {
+                        "description": "Invalid email or password"
+                    },
+                    "403": {
+                        "description": "Account/tenant inactive"
+                    }
+                }
+            }
+        },
+        "/api/v1/auth/refresh": {
+            "post": {
+                "tags": [
+                    "Auth"
+                ],
+                "summary": "Rotate a refresh token for a new access + refresh token pair",
+                "operationId": "0dea85e016e8cd21e2cfbe5a266afc33",
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "required": [
+                                    "refreshToken"
+                                ],
+                                "properties": {
+                                    "refreshToken": {
+                                        "type": "string"
+                                    }
+                                },
+                                "type": "object"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "Rotated — new accessToken/refreshToken/user"
+                    },
+                    "401": {
+                        "description": "Invalid, expired, or already-used refresh token"
+                    },
+                    "403": {
+                        "description": "Account/tenant inactive"
+                    }
+                }
+            }
+        },
+        "/api/v1/auth/logout": {
+            "post": {
+                "tags": [
+                    "Auth"
+                ],
+                "summary": "Revoke a refresh token",
+                "operationId": "5f258d41bd16f319a876c8ba72f87a7d",
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "required": [
+                                    "refreshToken"
+                                ],
+                                "properties": {
+                                    "refreshToken": {
+                                        "type": "string"
+                                    }
+                                },
+                                "type": "object"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "204": {
+                        "description": "Revoked — same response whether or not the token was valid"
+                    }
+                }
+            }
+        },
+        "/api/v1/clients": {
+            "get": {
+                "tags": [
+                    "Clients"
+                ],
+                "summary": "List clients for the current tenant, optionally filtered by name",
+                "operationId": "bbc01da9ecfa3710b50c4f45b35d2c8d",
+                "parameters": [
+                    {
+                        "name": "search",
+                        "in": "query",
+                        "required": false,
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Array of clients"
+                    }
+                }
+            },
+            "post": {
+                "tags": [
+                    "Clients"
+                ],
+                "summary": "Create a client",
+                "operationId": "a92c8c43d9ef16e155eb0567cf163591",
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "required": [
+                                    "name"
+                                ],
+                                "properties": {
+                                    "name": {
+                                        "type": "string",
+                                        "example": "Globex Corp"
+                                    },
+                                    "email": {
+                                        "type": "string",
+                                        "format": "email",
+                                        "nullable": true
+                                    },
+                                    "phone": {
+                                        "type": "string",
+                                        "nullable": true
+                                    },
+                                    "address": {
+                                        "type": "string",
+                                        "nullable": true
+                                    }
+                                },
+                                "type": "object"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "201": {
+                        "description": "Created"
+                    },
+                    "422": {
+                        "description": "Invalid input"
+                    }
+                }
+            }
+        },
+        "/api/v1/clients/{id}": {
+            "get": {
+                "tags": [
+                    "Clients"
+                ],
+                "summary": "Show a single client",
+                "operationId": "6bf3383a2732b07b9b2721df64675852",
+                "responses": {
+                    "200": {
+                        "description": "The client"
+                    },
+                    "404": {
+                        "description": "Not found"
+                    }
+                }
+            },
+            "put": {
+                "tags": [
+                    "Clients"
+                ],
+                "summary": "Replace a client",
+                "operationId": "dfba06d73a057916dbdb06669ae17862",
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "required": [
+                                    "name"
+                                ],
+                                "properties": {
+                                    "name": {
+                                        "type": "string"
+                                    },
+                                    "email": {
+                                        "type": "string",
+                                        "format": "email",
+                                        "nullable": true
+                                    },
+                                    "phone": {
+                                        "type": "string",
+                                        "nullable": true
+                                    },
+                                    "address": {
+                                        "type": "string",
+                                        "nullable": true
+                                    }
+                                },
+                                "type": "object"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "Updated"
+                    },
+                    "404": {
+                        "description": "Not found"
+                    },
+                    "422": {
+                        "description": "Invalid input"
+                    }
+                }
+            },
+            "delete": {
+                "tags": [
+                    "Clients"
+                ],
+                "summary": "Soft-delete a client",
+                "operationId": "690f10a46448a30febd82d1bee3521cb",
+                "responses": {
+                    "204": {
+                        "description": "Deleted"
+                    },
+                    "404": {
+                        "description": "Not found"
+                    }
+                }
+            }
+        },
+        "/api/v1/invoices": {
+            "get": {
+                "tags": [
+                    "Invoices"
+                ],
+                "summary": "List invoices for the current tenant (without line items)",
+                "operationId": "f90abe5168d00a2846149735ab9576ee",
+                "responses": {
+                    "200": {
+                        "description": "Array of invoices"
+                    }
+                }
+            },
+            "post": {
+                "tags": [
+                    "Invoices"
+                ],
+                "summary": "Create a draft invoice with line items (standalone, not via a quote)",
+                "operationId": "77c774d1fdda2cd5df6bd9cc06a38c69",
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "required": [
+                                    "client_id",
+                                    "items"
+                                ],
+                                "properties": {
+                                    "client_id": {
+                                        "type": "integer"
+                                    },
+                                    "issue_date": {
+                                        "type": "string",
+                                        "format": "date",
+                                        "nullable": true
+                                    },
+                                    "due_date": {
+                                        "type": "string",
+                                        "format": "date",
+                                        "nullable": true
+                                    },
+                                    "notes": {
+                                        "type": "string",
+                                        "nullable": true
+                                    },
+                                    "items": {
+                                        "type": "array",
+                                        "items": {
+                                            "properties": {
+                                                "description": {
+                                                    "type": "string"
+                                                },
+                                                "quantity": {
+                                                    "type": "number"
+                                                },
+                                                "unit_price": {
+                                                    "type": "number"
+                                                }
+                                            },
+                                            "type": "object"
+                                        }
+                                    }
+                                },
+                                "type": "object"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "201": {
+                        "description": "Created, with items"
+                    },
+                    "422": {
+                        "description": "Invalid client or items"
+                    }
+                }
+            }
+        },
+        "/api/v1/invoices/{id}": {
+            "get": {
+                "tags": [
+                    "Invoices"
+                ],
+                "summary": "Show a single invoice with its line items",
+                "operationId": "24bff1d8345339c3b786505bd29ffe59",
+                "responses": {
+                    "200": {
+                        "description": "The invoice, with items"
+                    },
+                    "404": {
+                        "description": "Not found"
+                    }
+                }
+            },
+            "put": {
+                "tags": [
+                    "Invoices"
+                ],
+                "summary": "Replace a draft invoice (client, dates, notes, items)",
+                "operationId": "4d1522d56b33aec8fdbaf59c70d78d34",
+                "responses": {
+                    "200": {
+                        "description": "Updated, with items"
+                    },
+                    "404": {
+                        "description": "Not found"
+                    },
+                    "422": {
+                        "description": "Not a draft, or invalid input"
+                    }
+                }
+            },
+            "delete": {
+                "tags": [
+                    "Invoices"
+                ],
+                "summary": "Soft-delete a draft invoice",
+                "operationId": "1a821e9d4c78df6a981d2461bc992fee",
+                "responses": {
+                    "204": {
+                        "description": "Deleted"
+                    },
+                    "404": {
+                        "description": "Not found"
+                    },
+                    "422": {
+                        "description": "Not a draft"
+                    }
+                }
+            }
+        },
+        "/api/v1/invoices/{id}/status": {
+            "post": {
+                "tags": [
+                    "Invoices"
+                ],
+                "summary": "Move an invoice to its next status (draft->sent->paid/overdue/cancelled)",
+                "operationId": "11c49387626d370247fcb2585fa3ce7c",
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "required": [
+                                    "status"
+                                ],
+                                "properties": {
+                                    "status": {
+                                        "type": "string",
+                                        "enum": [
+                                            "sent",
+                                            "paid",
+                                            "overdue",
+                                            "cancelled"
+                                        ]
+                                    }
+                                },
+                                "type": "object"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "Updated"
+                    },
+                    "404": {
+                        "description": "Not found"
+                    },
+                    "422": {
+                        "description": "Transition not allowed from the current status"
+                    }
+                }
+            }
+        },
+        "/api/v1/invoices/{id}/pdf": {
+            "get": {
+                "tags": [
+                    "Invoices"
+                ],
+                "summary": "Download the invoice as a PDF",
+                "operationId": "a041e9241b94832353c608522b65a905",
+                "responses": {
+                    "200": {
+                        "description": "application/pdf"
+                    },
+                    "404": {
+                        "description": "Not found"
+                    }
+                }
+            }
+        },
+        "/api/v1/invoices/{id}/payments": {
+            "get": {
+                "tags": [
+                    "Payments"
+                ],
+                "summary": "List payments recorded against an invoice",
+                "operationId": "ba32245f2294c50de07b220d261ec243",
+                "responses": {
+                    "200": {
+                        "description": "Array of payments"
+                    },
+                    "404": {
+                        "description": "Invoice not found"
+                    }
+                }
+            },
+            "post": {
+                "tags": [
+                    "Payments"
+                ],
+                "summary": "Record a payment against an invoice (partial or full)",
+                "operationId": "17ffd84692290d1e5addb925cb764e10",
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "required": [
+                                    "amount"
+                                ],
+                                "properties": {
+                                    "amount": {
+                                        "type": "number"
+                                    },
+                                    "method": {
+                                        "type": "string",
+                                        "nullable": true
+                                    },
+                                    "paid_at": {
+                                        "type": "string",
+                                        "format": "date",
+                                        "nullable": true
+                                    },
+                                    "notes": {
+                                        "type": "string",
+                                        "nullable": true
+                                    }
+                                },
+                                "type": "object"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "201": {
+                        "description": "Recorded; invoice auto-transitions to partially_paid or paid"
+                    },
+                    "404": {
+                        "description": "Invoice not found"
+                    },
+                    "422": {
+                        "description": "Invalid amount, or the invoice cannot take a payment"
+                    }
+                }
+            }
+        },
+        "/api/v1/me": {
+            "get": {
+                "tags": [
+                    "Profile"
+                ],
+                "summary": "Current user's profile",
+                "operationId": "3a09172f007f4d90a3717f7d5fcf0559",
+                "responses": {
+                    "200": {
+                        "description": "Profile"
+                    }
+                }
+            },
+            "put": {
+                "tags": [
+                    "Profile"
+                ],
+                "summary": "Update the current user's name",
+                "operationId": "e4fc0ae94a0bd3a704efcc9f815f05ad",
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "required": [
+                                    "name"
+                                ],
+                                "properties": {
+                                    "name": {
+                                        "type": "string"
+                                    }
+                                },
+                                "type": "object"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "Updated profile"
+                    },
+                    "422": {
+                        "description": "Name is required"
+                    }
+                }
+            }
+        },
+        "/api/v1/me/avatar": {
+            "post": {
+                "tags": [
+                    "Profile"
+                ],
+                "summary": "Upload/replace the current user's avatar (multipart/form-data, field \"avatar\")",
+                "operationId": "edb6c89b80a0322702a6e071294b3279",
+                "responses": {
+                    "200": {
+                        "description": "Updated profile with the new avatar URL"
+                    },
+                    "422": {
+                        "description": "Invalid file (size, type, or corrupt image)"
+                    }
+                }
+            },
+            "delete": {
+                "tags": [
+                    "Profile"
+                ],
+                "summary": "Remove the current user's avatar",
+                "operationId": "04e0aadfd44f8da92bc2b7658865895f",
+                "responses": {
+                    "200": {
+                        "description": "Updated profile, avatarUrl now null"
+                    }
+                }
+            }
+        },
+        "/api/v1/me/password": {
+            "put": {
+                "tags": [
+                    "Profile"
+                ],
+                "summary": "Change the current user's password",
+                "operationId": "81a59aeb26b0cc9afd38b87bf9f257c2",
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "required": [
+                                    "current_password",
+                                    "new_password"
+                                ],
+                                "properties": {
+                                    "current_password": {
+                                        "type": "string"
+                                    },
+                                    "new_password": {
+                                        "type": "string"
+                                    }
+                                },
+                                "type": "object"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "204": {
+                        "description": "Password changed"
+                    },
+                    "422": {
+                        "description": "Current password incorrect, or new password too short"
+                    }
+                }
+            }
+        },
+        "/api/v1/quotes": {
+            "get": {
+                "tags": [
+                    "Quotes"
+                ],
+                "summary": "List quotes for the current tenant (without line items)",
+                "operationId": "8626870127e53e26f292bc4fa886316a",
+                "responses": {
+                    "200": {
+                        "description": "Array of quotes"
+                    }
+                }
+            },
+            "post": {
+                "tags": [
+                    "Quotes"
+                ],
+                "summary": "Create a draft quote with line items",
+                "operationId": "7fab6b1de455b9470ed8343a07cdf803",
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "required": [
+                                    "client_id",
+                                    "items"
+                                ],
+                                "properties": {
+                                    "client_id": {
+                                        "type": "integer"
+                                    },
+                                    "issue_date": {
+                                        "type": "string",
+                                        "format": "date",
+                                        "nullable": true
+                                    },
+                                    "expiry_date": {
+                                        "type": "string",
+                                        "format": "date",
+                                        "nullable": true
+                                    },
+                                    "notes": {
+                                        "type": "string",
+                                        "nullable": true
+                                    },
+                                    "items": {
+                                        "type": "array",
+                                        "items": {
+                                            "properties": {
+                                                "description": {
+                                                    "type": "string"
+                                                },
+                                                "quantity": {
+                                                    "type": "number"
+                                                },
+                                                "unit_price": {
+                                                    "type": "number"
+                                                }
+                                            },
+                                            "type": "object"
+                                        }
+                                    }
+                                },
+                                "type": "object"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "201": {
+                        "description": "Created, with items"
+                    },
+                    "422": {
+                        "description": "Invalid client or items"
+                    }
+                }
+            }
+        },
+        "/api/v1/quotes/{id}": {
+            "get": {
+                "tags": [
+                    "Quotes"
+                ],
+                "summary": "Show a single quote with its line items",
+                "operationId": "a25ca8710798721f75857cf5da55907a",
+                "responses": {
+                    "200": {
+                        "description": "The quote, with items"
+                    },
+                    "404": {
+                        "description": "Not found"
+                    }
+                }
+            },
+            "put": {
+                "tags": [
+                    "Quotes"
+                ],
+                "summary": "Replace a draft quote (client, dates, notes, items)",
+                "operationId": "a58760a0b04a1ad6abc7e7b318dbb1e1",
+                "responses": {
+                    "200": {
+                        "description": "Updated, with items"
+                    },
+                    "404": {
+                        "description": "Not found"
+                    },
+                    "422": {
+                        "description": "Not a draft, or invalid input"
+                    }
+                }
+            },
+            "delete": {
+                "tags": [
+                    "Quotes"
+                ],
+                "summary": "Soft-delete a draft quote",
+                "operationId": "6c4994f0c55e76ed56a9bf38b78ecae6",
+                "responses": {
+                    "204": {
+                        "description": "Deleted"
+                    },
+                    "404": {
+                        "description": "Not found"
+                    },
+                    "422": {
+                        "description": "Not a draft"
+                    }
+                }
+            }
+        },
+        "/api/v1/quotes/{id}/status": {
+            "post": {
+                "tags": [
+                    "Quotes"
+                ],
+                "summary": "Move a quote to its next status (draft->sent->accepted/rejected/expired)",
+                "operationId": "a261c588196a4e4ddf9f6d04b96b9a0c",
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "required": [
+                                    "status"
+                                ],
+                                "properties": {
+                                    "status": {
+                                        "type": "string",
+                                        "enum": [
+                                            "sent",
+                                            "accepted",
+                                            "rejected",
+                                            "expired"
+                                        ]
+                                    }
+                                },
+                                "type": "object"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "Updated"
+                    },
+                    "404": {
+                        "description": "Not found"
+                    },
+                    "422": {
+                        "description": "Transition not allowed from the current status"
+                    }
+                }
+            }
+        },
+        "/api/v1/quotes/{id}/convert": {
+            "post": {
+                "tags": [
+                    "Quotes"
+                ],
+                "summary": "Convert an accepted quote into a new draft invoice",
+                "operationId": "fbff3ab84d03f643497f036c5137bcf1",
+                "responses": {
+                    "201": {
+                        "description": "The newly created invoice, with items"
+                    },
+                    "404": {
+                        "description": "Not found"
+                    },
+                    "422": {
+                        "description": "Quote is not accepted"
+                    }
+                }
+            }
+        },
+        "/api/v1/stats/dashboard": {
+            "get": {
+                "tags": [
+                    "Stats"
+                ],
+                "summary": "Snapshot + time-series metrics for the dashboard (revenue, overdue, quotes)",
+                "operationId": "1a3435f0b0d1c7069c0d88482608f7e4",
+                "responses": {
+                    "200": {
+                        "description": "Dashboard metrics"
+                    }
+                }
+            }
+        }
+    },
+    "tags": [
+        {
+            "name": "Auth",
+            "description": "Auth"
+        },
+        {
+            "name": "Clients",
+            "description": "Clients"
+        },
+        {
+            "name": "Invoices",
+            "description": "Invoices"
+        },
+        {
+            "name": "Payments",
+            "description": "Payments"
+        },
+        {
+            "name": "Profile",
+            "description": "Profile"
+        },
+        {
+            "name": "Quotes",
+            "description": "Quotes"
+        },
+        {
+            "name": "Stats",
+            "description": "Stats"
+        }
+    ]
+}

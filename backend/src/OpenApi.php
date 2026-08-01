@@ -12,7 +12,7 @@ use OpenApi\Attributes as OA;
  * has to attach to *some* class.
  */
 #[OA\Info(title: 'InvoicePro API', version: '0.1.0', description: 'Multi-tenant invoicing/quoting API for freelancers/SMEs.')]
-#[OA\Server(url: '/api/v1', description: 'Local development')]
+#[OA\Server(url: 'http://localhost:8000/api/v1', description: 'Local development (Docker)')]
 final class OpenApi
 {
 }

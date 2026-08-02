@@ -36,6 +36,8 @@ frontend (a handful of homemade UI components rather than a full component libra
   password change.
 - **Activity log** — an append-only audit trail of status changes, quote→invoice conversions,
   and payments.
+- **Team management** — an owner/admin can add teammates to their tenant with a chosen role
+  (owner/admin/accountant/viewer); the new account is usable immediately.
 - **OpenAPI docs** generated from PHP 8 attributes, served via Swagger UI.
 
 ## Quick start (Docker)
@@ -131,9 +133,11 @@ With the stack running (Docker or manual):
    invoice status and the dashboard numbers update.
 5. Check the **Activity** page in the sidebar — the status changes, conversion, and payment you
    just did are all there, newest first.
-6. Open the user menu → **Edit profile** to rename yourself or upload an avatar; **Change
+6. Go to **Team**, add a teammate with the `accountant` or `viewer` role, then log in as them
+   (in a private/incognito window) to see the RBAC actually restrict what they can do.
+7. Open the user menu → **Edit profile** to rename yourself or upload an avatar; **Change
    password** is a separate page on purpose (never bundled with a name/avatar update).
-7. **Log out** returns you to `/login`; logging back in with the same credentials works.
+8. **Log out** returns you to `/login`; logging back in with the same credentials works.
 
 ### Testing the API directly
 
@@ -179,10 +183,8 @@ are path-filtered, so a frontend-only change doesn't trigger the PHP suite and v
 ## Status
 
 All 6 planned phases are done: Auth, Clients, Quotes, Invoices, Payments + Dashboard, and an
-admin shell + Profile module — plus an append-only activity log (quote/invoice status changes,
-conversions, payments) added afterward. Every module was verified against a real MySQL database
-and a real browser run (not just unit tests) before being committed — see the commit history for
-the full trail. Docker, Swagger UI, CI, and the docs above are also done.
-
-Not implemented: inviting additional users into an existing tenant with a specific role (the
-`users.manage` permission exists in the RBAC matrix, but no endpoint sits behind it yet).
+admin shell + Profile module — plus, added afterward: an append-only activity log (quote/invoice
+status changes, conversions, payments) and team management (add a teammate to your tenant with a
+chosen role). Every module was verified against a real MySQL database and a real browser run (not
+just unit tests) before being committed — see the commit history for the full trail. Docker,
+Swagger UI, CI, and the docs above are also done.

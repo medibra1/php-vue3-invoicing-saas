@@ -100,14 +100,20 @@ user, not gated by the permission matrix above.
 | DELETE | `/me/avatar` | Falls back to initials on the frontend |
 | PUT | `/me/password` | Body: `{ "current_password": "...", "new_password": "..." }` |
 
+## Team
+
+| Method | Path | Permission | Notes |
+|---|---|---|---|
+| GET | `/team` | `users.manage` | Members of the current tenant, with their role |
+| POST | `/team` | `users.manage` | Body: `{ "name", "email", "password", "role" }` — creates the account directly and usably, no invitation email |
+
 ## RBAC quick reference
 
 | Role | Permissions |
 |---|---|
-| `owner`, `admin` | Everything |
+| `owner`, `admin` | Everything, incl. Team |
 | `accountant` | Clients (view/create/update), Quotes (view/create/update/convert), Invoices (view/create/update), Payments (view/create), Stats, Activity log |
 | `viewer` | Everything above, read-only (`*.view` only) |
 
-Every tenant's first user (from `/auth/register`) is its `owner`. Inviting additional users into
-an existing tenant with a specific role isn't implemented yet (`users.manage` permission exists
-in the RBAC matrix but has no endpoint behind it).
+Every tenant's first user (from `/auth/register`) is its `owner`. Additional users are added via
+`POST /team` by an `owner`/`admin`, with any of the four roles.

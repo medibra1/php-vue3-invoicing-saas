@@ -8,6 +8,7 @@ import {
   PanelLeftCloseIcon,
   PanelLeftOpenIcon,
   ReceiptIcon,
+  UserPlusIcon,
   UsersIcon,
 } from '@lucide/vue'
 
@@ -26,6 +27,7 @@ const navItems = [
   { to: '/quotes', label: 'Quotes', icon: FileTextIcon },
   { to: '/invoices', label: 'Invoices', icon: ReceiptIcon },
   { to: '/activity', label: 'Activity', icon: ActivityIcon },
+  { to: '/team', label: 'Team', icon: UserPlusIcon },
 ]
 
 function isActive(to: string): boolean {

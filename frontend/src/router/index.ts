@@ -94,6 +94,11 @@ const router = createRouter({
           component: () => import('@/modules/activity-log/components/ActivityLogList.vue'),
         },
         {
+          path: 'team',
+          name: 'team.index',
+          component: () => import('@/modules/team/components/TeamList.vue'),
+        },
+        {
           path: 'profile',
           name: 'profile.show',
           component: () => import('@/modules/profile/components/ProfileForm.vue'),

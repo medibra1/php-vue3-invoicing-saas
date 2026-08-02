@@ -8,6 +8,7 @@ use App\Core\Http\CorsMiddleware;
 use App\Core\Http\JsonBodyParserMiddleware;
 use App\Core\Kernel;
 use App\Core\Router\Router;
+use App\Modules\ActivityLog\ActivityLogController;
 use App\Modules\Auth\AuthController;
 use App\Modules\Auth\AuthMiddleware;
 use App\Modules\Auth\JwtDecoder;
@@ -107,6 +108,13 @@ $router->group(['prefix' => '/api/v1'], function (Router $router): void {
         ['prefix' => '/stats', 'middleware' => [AuthMiddleware::class, TenantResolverMiddleware::class]],
         function (Router $router): void {
             $router->get('/dashboard', [StatsController::class, 'dashboard'], [[PermissionMiddleware::class, 'stats.view']]);
+        }
+    );
+
+    $router->group(
+        ['prefix' => '/activity-logs', 'middleware' => [AuthMiddleware::class, TenantResolverMiddleware::class]],
+        function (Router $router): void {
+            $router->get('', [ActivityLogController::class, 'index'], [[PermissionMiddleware::class, 'activity_logs.view']]);
         }
     );
 

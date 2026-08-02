@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Modules\Invoice;
 
 use App\Core\Http\JsonErrorResponse;
+use App\Modules\ActivityLog\ActivityLogRepository;
 use App\Modules\Client\ClientRepository;
 use Nyholm\Psr7\Factory\Psr17Factory;
 use OpenApi\Attributes as OA;
@@ -19,7 +20,8 @@ final class InvoiceController
         private readonly InvoiceRepository $invoices,
         private readonly InvoiceService $invoiceService,
         private readonly InvoicePdfGenerator $pdfGenerator,
-        private readonly ClientRepository $clients
+        private readonly ClientRepository $clients,
+        private readonly ActivityLogRepository $activityLogs
     ) {
         $this->psr17Factory = new Psr17Factory();
     }
@@ -142,8 +144,17 @@ final class InvoiceController
     {
         return $this->respond(function () use ($request, $id): ResponseInterface {
             $status = (string) ($this->body($request)['status'] ?? '');
+            $invoice = $this->invoiceService->transition((int) $id, $status);
 
-            return $this->json(200, $this->invoiceService->transition((int) $id, $status));
+            $this->activityLogs->log(
+                $this->userId($request),
+                'invoice.status_changed',
+                'Invoice',
+                (int) $invoice['id'],
+                "Invoice {$invoice['number']} moved to {$invoice['status']}"
+            );
+
+            return $this->json(200, $invoice);
         });
     }
 
@@ -169,6 +180,14 @@ final class InvoiceController
 
             return $response;
         });
+    }
+
+    private function userId(ServerRequestInterface $request): ?int
+    {
+        $claims = $request->getAttribute('authClaims');
+        $userId = is_array($claims) ? ($claims['sub'] ?? null) : null;
+
+        return $userId === null ? null : (int) $userId;
     }
 
     private function respond(\Closure $action): ResponseInterface

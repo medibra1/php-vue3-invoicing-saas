@@ -32,6 +32,7 @@ final class RolesAndPermissionsSeeder
         ['slug' => 'payments.view', 'description' => 'View payments'],
         ['slug' => 'payments.create', 'description' => 'Record payments'],
         ['slug' => 'stats.view', 'description' => 'View dashboard metrics'],
+        ['slug' => 'activity_logs.view', 'description' => 'View the activity log'],
         ['slug' => 'users.manage', 'description' => 'Invite/manage team members'],
     ];
 
@@ -43,9 +44,12 @@ final class RolesAndPermissionsSeeder
             'clients.view', 'clients.create', 'clients.update',
             'quotes.view', 'quotes.create', 'quotes.update', 'quotes.convert',
             'invoices.view', 'invoices.create', 'invoices.update',
-            'payments.view', 'payments.create', 'stats.view',
+            'payments.view', 'payments.create', 'stats.view', 'activity_logs.view',
         ],
-        'viewer' => ['clients.view', 'quotes.view', 'invoices.view', 'payments.view', 'stats.view'],
+        'viewer' => [
+            'clients.view', 'quotes.view', 'invoices.view', 'payments.view',
+            'stats.view', 'activity_logs.view',
+        ],
     ];
 
     private const ROLE_NAMES = [

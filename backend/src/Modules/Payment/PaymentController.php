@@ -5,6 +5,8 @@ declare(strict_types=1);
 namespace App\Modules\Payment;
 
 use App\Core\Http\JsonErrorResponse;
+use App\Modules\ActivityLog\ActivityLogRepository;
+use App\Modules\Invoice\InvoiceRepository;
 use Nyholm\Psr7\Factory\Psr17Factory;
 use OpenApi\Attributes as OA;
 use Psr\Http\Message\ResponseInterface;
@@ -14,8 +16,11 @@ final class PaymentController
 {
     private readonly Psr17Factory $psr17Factory;
 
-    public function __construct(private readonly PaymentService $paymentService)
-    {
+    public function __construct(
+        private readonly PaymentService $paymentService,
+        private readonly InvoiceRepository $invoices,
+        private readonly ActivityLogRepository $activityLogs
+    ) {
         $this->psr17Factory = new Psr17Factory();
     }
 
@@ -57,9 +62,28 @@ final class PaymentController
     )]
     public function store(ServerRequestInterface $request, string $id): ResponseInterface
     {
-        return $this->respond(
-            fn (): ResponseInterface => $this->json(201, $this->paymentService->create((int) $id, $this->body($request)))
-        );
+        return $this->respond(function () use ($request, $id): ResponseInterface {
+            $payment = $this->paymentService->create((int) $id, $this->body($request));
+            $invoice = $this->invoices->find((int) $id);
+
+            $this->activityLogs->log(
+                $this->userId($request),
+                'payment.recorded',
+                'Payment',
+                (int) $payment['id'],
+                sprintf('Payment of %.2f recorded on invoice %s', (float) $payment['amount'], $invoice['number'] ?? "#{$id}")
+            );
+
+            return $this->json(201, $payment);
+        });
+    }
+
+    private function userId(ServerRequestInterface $request): ?int
+    {
+        $claims = $request->getAttribute('authClaims');
+        $userId = is_array($claims) ? ($claims['sub'] ?? null) : null;
+
+        return $userId === null ? null : (int) $userId;
     }
 
     private function respond(\Closure $action): ResponseInterface

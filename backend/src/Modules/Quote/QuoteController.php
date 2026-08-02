@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Modules\Quote;
 
 use App\Core\Http\JsonErrorResponse;
+use App\Modules\ActivityLog\ActivityLogRepository;
 use Nyholm\Psr7\Factory\Psr17Factory;
 use OpenApi\Attributes as OA;
 use Psr\Http\Message\ResponseInterface;
@@ -17,7 +18,8 @@ final class QuoteController
     public function __construct(
         private readonly QuoteRepository $quotes,
         private readonly QuoteService $quoteService,
-        private readonly QuoteToInvoiceConverter $converter
+        private readonly QuoteToInvoiceConverter $converter,
+        private readonly ActivityLogRepository $activityLogs
     ) {
         $this->psr17Factory = new Psr17Factory();
     }
@@ -140,8 +142,17 @@ final class QuoteController
     {
         return $this->respond(function () use ($request, $id): ResponseInterface {
             $status = (string) ($this->body($request)['status'] ?? '');
+            $quote = $this->quoteService->transition((int) $id, $status);
 
-            return $this->json(200, $this->quoteService->transition((int) $id, $status));
+            $this->activityLogs->log(
+                $this->userId($request),
+                'quote.status_changed',
+                'Quote',
+                (int) $quote['id'],
+                "Quote {$quote['number']} moved to {$quote['status']}"
+            );
+
+            return $this->json(200, $quote);
         });
     }
 
@@ -155,9 +166,30 @@ final class QuoteController
             new OA\Response(response: 422, description: 'Quote is not accepted'),
         ]
     )]
-    public function convert(string $id): ResponseInterface
+    public function convert(ServerRequestInterface $request, string $id): ResponseInterface
     {
-        return $this->respond(fn (): ResponseInterface => $this->json(201, $this->converter->convert((int) $id)));
+        return $this->respond(function () use ($request, $id): ResponseInterface {
+            $quote = $this->quoteService->findOrFail((int) $id);
+            $invoice = $this->converter->convert((int) $id);
+
+            $this->activityLogs->log(
+                $this->userId($request),
+                'quote.converted',
+                'Quote',
+                (int) $quote['id'],
+                "Quote {$quote['number']} converted to invoice {$invoice['number']}"
+            );
+
+            return $this->json(201, $invoice);
+        });
+    }
+
+    private function userId(ServerRequestInterface $request): ?int
+    {
+        $claims = $request->getAttribute('authClaims');
+        $userId = is_array($claims) ? ($claims['sub'] ?? null) : null;
+
+        return $userId === null ? null : (int) $userId;
     }
 
     private function respond(\Closure $action): ResponseInterface

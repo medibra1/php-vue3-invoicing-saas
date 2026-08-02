@@ -78,6 +78,16 @@ final class Kernel
      * request to a path with no registered route would 404 before
      * CorsMiddleware ever got a chance to answer it, and a 404/405 would
      * never carry CORS headers either.
+     *
+     * The 500 catch is *inside* dispatchRoute — i.e. inside the global
+     * middleware stack, not wrapped around it — so a crash in per-route
+     * middleware or a controller still passes back out through
+     * CorsMiddleware and gets CORS headers on its error response. An
+     * exception that escapes the global stack itself (CorsMiddleware
+     * only ever returns a response, so in practice this means a bug in
+     * a *global* middleware or the container/router plumbing) falls
+     * through to the outer catch as a last resort, with no CORS headers
+     * — a real infra-level crash, not a normal application error.
      */
     public function handle(ServerRequestInterface $request): ResponseInterface
     {
@@ -104,7 +114,11 @@ final class Kernel
 
             $routePipeline = new MiddlewarePipeline($route->middlewares, $this->container, $finalHandler);
 
-            return $routePipeline->handle($request);
+            try {
+                return $routePipeline->handle($request);
+            } catch (Throwable $e) {
+                return $this->jsonError(500, 'Internal Server Error', $e->getMessage());
+            }
         };
 
         $globalPipeline = new MiddlewarePipeline($this->globalMiddlewares, $this->container, $dispatchRoute);

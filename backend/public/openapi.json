@@ -949,6 +949,76 @@
                     }
                 }
             }
+        },
+        "/api/v1/team": {
+            "get": {
+                "tags": [
+                    "Team"
+                ],
+                "summary": "List members of the current tenant, with their role",
+                "operationId": "6fd7f906eaffa1961919c923614343f3",
+                "responses": {
+                    "200": {
+                        "description": "Array of members"
+                    }
+                }
+            },
+            "post": {
+                "tags": [
+                    "Team"
+                ],
+                "summary": "Add a new member to the current tenant with a chosen role",
+                "operationId": "6d00cd9f97c2d3729958aa75416eb457",
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "required": [
+                                    "name",
+                                    "email",
+                                    "password",
+                                    "role"
+                                ],
+                                "properties": {
+                                    "name": {
+                                        "type": "string"
+                                    },
+                                    "email": {
+                                        "type": "string",
+                                        "format": "email"
+                                    },
+                                    "password": {
+                                        "type": "string",
+                                        "minLength": 8
+                                    },
+                                    "role": {
+                                        "type": "string",
+                                        "enum": [
+                                            "owner",
+                                            "admin",
+                                            "accountant",
+                                            "viewer"
+                                        ]
+                                    }
+                                },
+                                "type": "object"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "201": {
+                        "description": "Member created"
+                    },
+                    "409": {
+                        "description": "Email already registered"
+                    },
+                    "422": {
+                        "description": "Invalid input or unknown role"
+                    }
+                }
+            }
         }
     },
     "tags": [
@@ -983,6 +1053,10 @@
         {
             "name": "Stats",
             "description": "Stats"
+        },
+        {
+            "name": "Team",
+            "description": "Team"
         }
     ]
 }

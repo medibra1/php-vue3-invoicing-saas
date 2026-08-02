@@ -12,6 +12,38 @@
         }
     ],
     "paths": {
+        "/api/v1/activity-logs": {
+            "get": {
+                "tags": [
+                    "ActivityLog"
+                ],
+                "summary": "Paginated activity log for the current tenant (status changes, payments, conversions)",
+                "operationId": "897269a11156d31de6019074e38ff59e",
+                "parameters": [
+                    {
+                        "name": "page",
+                        "in": "query",
+                        "schema": {
+                            "type": "integer",
+                            "default": 1
+                        }
+                    },
+                    {
+                        "name": "perPage",
+                        "in": "query",
+                        "schema": {
+                            "type": "integer",
+                            "default": 20
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "items[], total, page, perPage"
+                    }
+                }
+            }
+        },
         "/api/v1/auth/register": {
             "post": {
                 "tags": [
@@ -920,6 +952,10 @@
         }
     },
     "tags": [
+        {
+            "name": "ActivityLog",
+            "description": "ActivityLog"
+        },
         {
             "name": "Auth",
             "description": "Auth"

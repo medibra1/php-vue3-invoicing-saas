@@ -34,6 +34,8 @@ frontend (a handful of homemade UI components rather than a full component libra
   rate, a 6-month revenue chart.
 - **Profile management** — name, avatar upload (resized/re-encoded server-side via GD),
   password change.
+- **Activity log** — an append-only audit trail of status changes, quote→invoice conversions,
+  and payments.
 - **OpenAPI docs** generated from PHP 8 attributes, served via Swagger UI.
 
 ## Quick start (Docker)
@@ -127,9 +129,11 @@ With the stack running (Docker or manual):
 4. Create a client, then a quote, send it, accept it, and convert it into an invoice — or create
    an invoice directly. Record a payment (try a partial one, then the rest) and watch the
    invoice status and the dashboard numbers update.
-5. Open the user menu → **Edit profile** to rename yourself or upload an avatar; **Change
+5. Check the **Activity** page in the sidebar — the status changes, conversion, and payment you
+   just did are all there, newest first.
+6. Open the user menu → **Edit profile** to rename yourself or upload an avatar; **Change
    password** is a separate page on purpose (never bundled with a name/avatar update).
-6. **Log out** returns you to `/login`; logging back in with the same credentials works.
+7. **Log out** returns you to `/login`; logging back in with the same credentials works.
 
 ### Testing the API directly
 
@@ -152,11 +156,12 @@ routes.
 
 ## Documentation
 
-Planned, not yet written:
-
-- Backend architecture (`docs/architecture.md`)
-- API endpoints (`docs/api.md`) — covered for now by the generated Swagger UI instead
-- Database schema (`docs/database.md`)
+- [Architecture](docs/architecture.md) — request lifecycle, module structure, RBAC, frontend
+  structure, testing strategy, infra.
+- [API reference](docs/api.md) — a quick per-module index; full schemas via the generated
+  Swagger UI (see Quick start above).
+- [Database schema](docs/database.md) — multi-tenancy mechanism, ER diagram, table-by-table
+  decisions.
 
 ## Testing
 
@@ -174,10 +179,10 @@ are path-filtered, so a frontend-only change doesn't trigger the PHP suite and v
 ## Status
 
 All 6 planned phases are done: Auth, Clients, Quotes, Invoices, Payments + Dashboard, and an
-admin shell + Profile module. Every module was verified against a real MySQL database and a
-real browser run (not just unit tests) before being committed — see the commit history for the
-full trail. Docker, Swagger UI, and CI are also done.
+admin shell + Profile module — plus an append-only activity log (quote/invoice status changes,
+conversions, payments) added afterward. Every module was verified against a real MySQL database
+and a real browser run (not just unit tests) before being committed — see the commit history for
+the full trail. Docker, Swagger UI, CI, and the docs above are also done.
 
-Not done, and not blocking: `docs/architecture.md` / `docs/api.md` / `docs/database.md` (the
-architecture is documented in depth in code comments and OpenAPI attributes instead), and an
-`activity_logs` table (flagged early as a nice-to-have, never scheduled into a phase).
+Not implemented: inviting additional users into an existing tenant with a specific role (the
+`users.manage` permission exists in the RBAC matrix, but no endpoint sits behind it yet).

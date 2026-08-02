@@ -89,6 +89,11 @@ const router = createRouter({
           component: () => import('@/modules/invoices/components/InvoiceDetail.vue'),
         },
         {
+          path: 'activity',
+          name: 'activity.index',
+          component: () => import('@/modules/activity-log/components/ActivityLogList.vue'),
+        },
+        {
           path: 'profile',
           name: 'profile.show',
           component: () => import('@/modules/profile/components/ProfileForm.vue'),

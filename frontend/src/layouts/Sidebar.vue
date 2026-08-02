@@ -1,7 +1,15 @@
 <script setup lang="ts">
 import { ref, watch } from 'vue'
 import { RouterLink, useRoute } from 'vue-router'
-import { FileTextIcon, LayoutDashboardIcon, PanelLeftCloseIcon, PanelLeftOpenIcon, ReceiptIcon, UsersIcon } from '@lucide/vue'
+import {
+  ActivityIcon,
+  FileTextIcon,
+  LayoutDashboardIcon,
+  PanelLeftCloseIcon,
+  PanelLeftOpenIcon,
+  ReceiptIcon,
+  UsersIcon,
+} from '@lucide/vue'
 
 const COLLAPSED_KEY = 'invoicepro.sidebarCollapsed'
 
@@ -17,6 +25,7 @@ const navItems = [
   { to: '/clients', label: 'Clients', icon: UsersIcon },
   { to: '/quotes', label: 'Quotes', icon: FileTextIcon },
   { to: '/invoices', label: 'Invoices', icon: ReceiptIcon },
+  { to: '/activity', label: 'Activity', icon: ActivityIcon },
 ]
 
 function isActive(to: string): boolean {

@@ -21,6 +21,7 @@ use App\Modules\Profile\AvatarService;
 use App\Modules\Profile\ProfileController;
 use App\Modules\Quote\QuoteController;
 use App\Modules\Stats\StatsController;
+use App\Modules\Team\TeamController;
 use App\Modules\Tenant\TenantResolverMiddleware;
 
 // PHP's built-in dev server (`php -S ... public/index.php`) routes
@@ -129,6 +130,14 @@ $router->group(['prefix' => '/api/v1'], function (Router $router): void {
             $router->post('/avatar', [ProfileController::class, 'uploadAvatar']);
             $router->delete('/avatar', [ProfileController::class, 'deleteAvatar']);
             $router->put('/password', [ProfileController::class, 'changePassword']);
+        }
+    );
+
+    $router->group(
+        ['prefix' => '/team', 'middleware' => [AuthMiddleware::class, TenantResolverMiddleware::class]],
+        function (Router $router): void {
+            $router->get('', [TeamController::class, 'index'], [[PermissionMiddleware::class, 'users.manage']]);
+            $router->post('', [TeamController::class, 'store'], [[PermissionMiddleware::class, 'users.manage']]);
         }
     );
 });
